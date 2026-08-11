@@ -59,7 +59,39 @@ localhost=no
 SecurityTypes=None
 EOF
 
-COPY start-kali.sh /usr/local/bin/start-kali.sh
+RUN cat > /usr/local/bin/start-kali.sh <<'EOF'
+#!/bin/bash
+
+set -e
+
+export DISPLAY=:1
+export HOME=/root
+
+echo "======================================"
+echo " Kali Linux XFCE"
+echo " Starting TigerVNC..."
+echo "======================================"
+
+rm -f /tmp/.X1-lock
+rm -f /tmp/.X11-unix/X1
+
+vncserver :1 \
+    -geometry 1280x800 \
+    -depth 24 \
+    -localhost no \
+    -SecurityTypes None
+
+echo "TigerVNC started on 5901"
+
+PORT="${PORT:-6080}"
+
+echo "Starting noVNC on ${PORT}"
+
+exec websockify \
+    --web=/usr/share/novnc \
+    0.0.0.0:${PORT} \
+    127.0.0.1:5901
+EOF
 
 RUN chmod +x /usr/local/bin/start-kali.sh
 
